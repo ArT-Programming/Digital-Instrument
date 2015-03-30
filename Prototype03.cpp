@@ -34,7 +34,7 @@ public:
 	
 		
 		while(io()){
-			float volume = fmSynth.volume(arduino[0].veloX, arduino[0].veloY, arduino[0].veloZ );
+			float volume = fmSynth[0].volume(arduino[0].veloX, arduino[0].veloY, arduino[0].veloZ );
 			float out = fmSynth[0].modulate(fc, 1, index);
 			
 			io.out(0) = out * volume;
