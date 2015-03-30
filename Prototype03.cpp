@@ -34,11 +34,11 @@ public:
 	
 		
 		while(io()){
-			
+			float volume = fmSynth.volume(arduino[0].veloX, arduino[0].veloY, arduino[0].veloZ );
 			float out = fmSynth[0].modulate(fc, 1, index);
 			
-			io.out(0) = out * 0.8;
-			io.out(1) = out * 0.8;
+			io.out(0) = out * volume;
+			io.out(1) = out * volume;
 		}
 	} 
 
