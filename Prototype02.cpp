@@ -5,8 +5,8 @@
 #include "Gamma/Filter.h"
 #include "Gamma/Noise.h"
 #include "Gamma/SamplePlayer.h"
-#include "al_AudioApp.hpp"
-#include "header01.hpp"
+#include "header/al_AudioApp.hpp"
+#include "header/header01.hpp"
 
 using namespace al;
 
