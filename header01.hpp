@@ -1,4 +1,3 @@
-
 #include "Kalman.h"
 #include "BAP/BAP.h"
 #include "allocore/io/al_Serial.hpp"
@@ -100,15 +99,13 @@ public:
         }
 	}
 	
-	/*~Values(){
-		delete arduino;
-	}*/
-	
-	void unpack(){
+	bool unpack(){
+		bool read = false; 
 		unsigned char buffer[256];
         int bytesRead = serial.read(buffer, sizeof(buffer));
         for(int i=0; i<bytesRead; ++i){
             if(parser.inputByte(buffer[i])){
+            	read = true;
 				for(int a = 0; a < arduinoAmount; a++){
 					for(int s = 0; s < sensorAmount; s++){
 						for(int v = 0; v < valuesPrSensor; v++){
@@ -119,6 +116,7 @@ public:
 				}
             }
         }
+      return read;  
 	}
 };
 
