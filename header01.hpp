@@ -4,12 +4,12 @@
 #include "allocore/io/al_Serial.hpp"
 #include "Gamma/Oscillator.h"
 
-class FMSynth{
+class Synth{
 public:
 gam::Sine<> car;	// Carrier sine (gets its frequency modulated)
 gam::Sine<> mod;	// Modulator sine (used to modulate frequency)
 float freq;
-	FMSynth(){
+	Synth(){
 		freq = 440;
 	}
 	
@@ -32,6 +32,14 @@ float freq;
 		float s = car() * 0.5;
 		
 		return s;
+	}
+	float volume(float x = 0, float y = 0, float z = 0){
+		float mean = (x + y + z) / 3.;
+		mean = mean / 180.;
+		if(mean > 1) mean = 1;
+		if(mean < 0.1) mean = 0;
+		return mean;
+	
 	}
 };
 
@@ -120,14 +128,15 @@ public:
 	float gyro[3];
 	float acc[3];
 	Kalman kalmanX,kalmanY;
-	float angleX,angleY,angleZ;
+	float angleX,angleY,angleZ, oldAngleX, oldAngleY, oldAngleZ, veloX, veloY, veloZ;
+
 	
 	Arduino(){
 		for(int i = 0; i < 3; i++){
 			gyro[i] = 0;
 			acc[i] = 0;
 		}
-		angleX = angleY = angleZ = 0;
+		angleX = angleY = angleZ = oldAngleX = oldAngleY = oldAngleZ = veloX = veloY = veloZ = 0;
 		//kalmanX.setQangle(0.01); //0.001 default
 		//kalmanX.setQbias(0.03); //0.003 default
 		//kalmanX.setRmeasure(0.3); //0.03 default
@@ -172,6 +181,16 @@ public:
 		angleY = kalmanY.getAngle(pitch, rateY, dt);
 		angleZ += gyro[2];
 		//angleZ *= 0.99;
+	}
+	
+	void velocity(double dt){
+	
+		veloX = fabs(angleX - oldAngleX)/ dt;
+		veloY = fabs(angleY - oldAngleY)/ dt;
+		veloZ = fabs(angleZ - oldAngleZ)/ dt;
+		oldAngleX = angleX;
+		oldAngleY = angleY;
+		oldAngleZ = angleZ;
 	}
 };
 

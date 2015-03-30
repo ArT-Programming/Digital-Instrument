@@ -15,7 +15,7 @@ public:
 	Arduino arduino[2];
 	Values values;
 	Notes note;
-	FMSynth fmSynth[2];
+	Synth fmSynth[2];
 	Mesh quad;
     gam::Biquad<> hpf, lpf;
 	
