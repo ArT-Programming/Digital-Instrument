@@ -5,8 +5,13 @@ public:
 gam::Sine<> car;	// Carrier sine (gets its frequency modulated)
 gam::Sine<> mod;	// Modulator sine (used to modulate frequency)
 float freq;
+float volume[20000];
+
 	Synth(){
 		freq = 440;
+		for(int i = 0; i<100; i++){
+			volume[i] = 0;
+		}
 	}
 	
 	float modulate(float fc, float ratio, float I){
@@ -29,15 +34,15 @@ float freq;
 		
 		return s;
 	}
-	int averageFilter(int x[], int length){ //the function collects an array of integers and an integer to get the length of the array. It returns an integer
-  		int sum = 0; //varible to store the sum of the array elements
+	float averageFilter(float x[], int length){ //the function collects an array of integers and an integer to get the length of the array. It returns an integer
+  		float sum = 0; //varible to store the sum of the array elements
   		for(int i = 0; i < length; i++) sum += x[i]; //sum up the most current readings
  			return sum/length; //return the average by dividing by the number of elements
 		}
 
 	//function to sort the most current mean values and return the median value.
-	int medianFilter(int x[], int length){ //the function collects an array of integers and an integer to get the length of the array. It returns an integer
-  		int sorted[length]; //create an array the same size as the reading array
+	float medianFilter(float x[], int length){ //the function collects an array of integers and an integer to get the length of the array. It returns an integer
+  		float sorted[length]; //create an array the same size as the reading array
   			for(int i = 0; i < length; i++) sorted[i] = -1; //all elements of sorted[] array has to be set to a value to be able to compare them to other elements later on. I choose -1 because then i know any input will not be equal to that
   				for(int i = 0; i < length; i++){
     				int sortElement = 0; //variable sortElement is reset to 0 every time i is changed
@@ -50,14 +55,13 @@ float freq;
   		return sorted[length/2]; //return the median value, which is the middle element of the sorted array
 	}	
 	
-	float volume(float x = 0, float y = 0, float z = 0){
+	float currentVolume(float x = 0, float y = 0, float z = 0){
 		
 		float mean = (x + y + z) / 3.;
 		mean = mean / 180.;
 		if(mean > 1) mean = 1;
-		if(mean < 0.1) mean = 0;
+		if(mean < 0.45) mean = 0;
 		return mean;
-	
 	}
 };
 
