@@ -6,8 +6,8 @@
 #include "Gamma/Noise.h"
 #include "Gamma/SamplePlayer.h"
 #include "header/al_AudioApp.hpp"
-#include "header/header01.hpp"
-
+#include "header/Arduino.hpp"
+#include "header/Sound.hpp"
 using namespace al;
 
 class MyApp : public AudioApp{
