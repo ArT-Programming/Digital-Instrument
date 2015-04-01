@@ -20,8 +20,8 @@ public:
 	float time;
 	
 	MyApp():
-	values(2,2,3,"COM3",19200) // arduino, sensor, amount of values pr sensor, COMPORT, baudrate 
-	//values(2,2,3,"/dev/tty.usbmodem1411",19200) // arduino, sensor, amount of values pr sensor, COMPORT, baudrate 
+	//values(2,2,3,"COM3",19200) // arduino, sensor, amount of values pr sensor, COMPORT, baudrate 
+	values(2,2,3,"/dev/tty.usbmodem1411",19200) // arduino, sensor, amount of values pr sensor, COMPORT, baudrate 
 	{
 		initAudio(44100,128,2,0);
 		currentRead = 0;
@@ -47,10 +47,10 @@ public:
 				currentRead = 0;		
 			}
 			float volume = fmSynth[0].averageFilter(fmSynth[0].volume, meanArray);
-			float out = fmSynth[0].modulate(fc, ratio, index) * fmSynth[0].env();
-			
-			io.out(0) = out;
-			io.out(1) = out;
+			//float out = fmSynth[0].modulate(fc, ratio, index) * fmSynth[0].env();
+			float out = fmSynth[0].wavOsc(arduino[0].angleX, arduino[0].angleY);
+			io.out(0) = out * volume;
+			io.out(1) = out * volume;
 		}
 	} 
 

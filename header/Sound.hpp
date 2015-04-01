@@ -5,7 +5,10 @@ class Synth{
 public:
 gam::Sine<> car;	// Carrier sine (gets its frequency modulated)
 gam::Sine<> mod;	// Modulator sine (used to modulate frequency)
+gam::Osc<> osc[6];// Wavetable oscillators
 gam::AD<> env;
+gam::ArrayPow2<float> table, table2;	// Wavetable
+
 float freq;
 float volume[20000];
 float resetTime;
@@ -18,9 +21,56 @@ float resetTime;
 		resetTime = 1;
 		env.attack(0.1);
 		env.decay(0.5);
+		
+		// Set the table size; must be a power of 2
+		//for(int i = 0)
+		table.resize(2048);
+		table2.resize(2048);
+
+		/* Add sine waves to wavetable to generate a Fourier series
+		The addSine function adds a sine wave to an existing array of samples.
+		It takes the wavetable as the first argument followed by the number of
+		cycles of the sine, its amplitude, and then its phase through the cycle
+		in [0, 1].*/
+		for(int k=1; k<=16; k++){
+			//gam::addSine(table, k, 1./k); // saw wave
+			gam::addSine(table, k, 1./(k*k)); // Clausen function
+			gam::addSine(table2, 2*k, (2*k-1)); // square wave
+			//gam::addSine(table[2], k, 1./k); // square wave
+			//gam::addSine(table, k, 1./(k*k), 0.25); // triangle wave
+		}
+
+		// Assign a wavetable to the oscillator
+		for(int i = 0; i < 3; i++){
+			osc[i].source(table);
+			osc[i+3].source(table2);		
+		}
 	}
 	
+	float wavOsc(float angleX, float angleY){
+		float freq1 = ((angleX) / 90.) * 50;
+		float volumeX = ((angleX) / 180.) + 0.5; 
+		float freq2 = ((angleY) / 90.) * 10 + 5;
+		float volumeY = ((angleY) / 180.) + 0.5; 
+		float wav1 = 0;
+		float wav2 = 0;
+		float up = 0;
+		for(int i = 0; i < 3; i++){
+			
+			osc[i].freq(20 + up);
+			wav1 += osc[i]();
+			up += 0.1;
+			}
+		for(int i = 3; i < 6; i++){
+			osc[i].freq(300 + up);
+			wav2 += osc[i]();
+			up += 0.1;
+		}			
 	
+		//mixing
+		float out = (wav1 * volumeX) + (wav2 * volumeY); 
+		return out;
+	}
 	
 	float modulate(float fc, float ratio, float I){
 		
@@ -59,7 +109,8 @@ float resetTime;
 	void resetEnvelope(float x = 0, float y = 0, float z = 0){
 		if(x > 180) env.reset();
 		else if(y > 180) env.reset();
-	}
+		}
+	
 };
 
 class Notes{
