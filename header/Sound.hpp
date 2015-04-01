@@ -1,18 +1,26 @@
 #include "Gamma/Oscillator.h"
+#include "Gamma/Envelope.h"
 
 class Synth{
 public:
 gam::Sine<> car;	// Carrier sine (gets its frequency modulated)
 gam::Sine<> mod;	// Modulator sine (used to modulate frequency)
+gam::AD<> env;
 float freq;
 float volume[20000];
+float resetTime;
 
 	Synth(){
 		freq = 440;
 		for(int i = 0; i<100; i++){
 			volume[i] = 0;
 		}
+		resetTime = 1;
+		env.attack(0.1);
+		env.decay(0.5);
 	}
+	
+	
 	
 	float modulate(float fc, float ratio, float I){
 		
@@ -38,30 +46,19 @@ float volume[20000];
   		float sum = 0; //varible to store the sum of the array elements
   		for(int i = 0; i < length; i++) sum += x[i]; //sum up the most current readings
  			return sum/length; //return the average by dividing by the number of elements
-		}
-
-	//function to sort the most current mean values and return the median value.
-	float medianFilter(float x[], int length){ //the function collects an array of integers and an integer to get the length of the array. It returns an integer
-  		float sorted[length]; //create an array the same size as the reading array
-  			for(int i = 0; i < length; i++) sorted[i] = -1; //all elements of sorted[] array has to be set to a value to be able to compare them to other elements later on. I choose -1 because then i know any input will not be equal to that
-  				for(int i = 0; i < length; i++){
-    				int sortElement = 0; //variable sortElement is reset to 0 every time i is changed
-   					for(int j = 0; j < length; j++){
-      					if(x[i] > x[j]) sortElement++; //compare element i of reading with all ten readings, and add one to sortElement when it is more than another
-      					if(x[i] == sorted[j]) sortElement++; //if the checked element is same value as another reading that has already been sorted, add one to sortElement so it will be put into next element of sorted array
-    				}
-   				sorted[sortElement] = x[i]; //store x[i] into sorted[] and use the value of sortElement to select which element it has
-  			}
-  		return sorted[length/2]; //return the median value, which is the middle element of the sorted array
-	}	
+		}	
 	
 	float currentVolume(float x = 0, float y = 0, float z = 0){
-		
 		float mean = (x + y + z) / 3.;
-		mean = mean / 180.;
-		if(mean > 1) mean = 1;
+		mean = mean / 360.;
+		if(mean > 1.5) mean = 1.5;
 		if(mean < 0.15) mean = 0;
 		return mean;
+	}
+	
+	void resetEnvelope(float x = 0, float y = 0, float z = 0){
+		if(x > 180) env.reset();
+		else if(y > 180) env.reset();
 	}
 };
 
