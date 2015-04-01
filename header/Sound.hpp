@@ -60,7 +60,7 @@ float volume[20000];
 		float mean = (x + y + z) / 3.;
 		mean = mean / 180.;
 		if(mean > 1) mean = 1;
-		if(mean < 0.45) mean = 0;
+		if(mean < 0.15) mean = 0;
 		return mean;
 	}
 };

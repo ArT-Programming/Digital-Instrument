@@ -19,12 +19,12 @@ public:
 	int meanArray;
 	
 	MyApp():
-	values(2,2,3,"COM3",19200) // arduino, sensor, amount of values pr sensor, COMPORT, baudrate 
-	//values(2,2,3,"/dev/tty.usbmodem1411",19200) // arduino, sensor, amount of values pr sensor, COMPORT, baudrate 
+	//values(2,2,3,"COM3",19200) // arduino, sensor, amount of values pr sensor, COMPORT, baudrate 
+	values(2,2,3,"/dev/tty.usbmodem1411",19200) // arduino, sensor, amount of values pr sensor, COMPORT, baudrate 
 	{
 		initAudio(44100,128,2,0);
 		currentRead = 0;
-		meanArray = 5000;
+		meanArray = 2500;
 	}
 
 	// Audio callback
