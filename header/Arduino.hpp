@@ -80,32 +80,6 @@ public:
 	}
 };
 
-class MeanFilter{
-public:
-	MeanFilter(){}
-	
-	int averageFilter(int x[], int length){ //the function collects an array of integers and an integer to get the length of the array. It returns an integer
-  	int sum = 0; //varible to store the sum of the array elements
-  	for(int i = 0; i < length; i++) sum += x[i]; //sum up the most current readings
- 		return sum/length; //return the average by dividing by the number of elements
-	}
-
-	//function to sort the most current mean values and return the median value.
-	int medianFilter(int x[], int length){ //the function collects an array of integers and an integer to get the length of the array. It returns an integer
-  	int sorted[length]; //create an array the same size as the reading array
-  	for(int i = 0; i < length; i++) sorted[i] = -1; //all elements of sorted[] array has to be set to a value to be able to compare them to other elements later on. I choose -1 because then i know any input will not be equal to that
-  		for(int i = 0; i < length; i++){
-    		int sortElement = 0; //variable sortElement is reset to 0 every time i is changed
-   				 for(int j = 0; j < length; j++){
-      				if(x[i] > x[j]) sortElement++; //compare element i of reading with all ten readings, and add one to sortElement when it is more than another
-      				if(x[i] == sorted[j]) sortElement++; //if the checked element is same value as another reading that has already been sorted, add one to sortElement so it will be put into next element of sorted array
-    			}
-   			sorted[sortElement] = x[i]; //store x[i] into sorted[] and use the value of sortElement to select which element it has
-  		}
-  	return sorted[length/2]; //return the median value, which is the middle element of the sorted array
-	}
-};
-
 class Arduino{
 public:
 	float gyro[3];

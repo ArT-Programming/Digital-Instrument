@@ -33,24 +33,37 @@ public:
 	virtual void onSound(AudioIOData& io){	
 		gam::sampleRate(io.fps());
 	
-		//float index = ((arduino[1].angleX + 90) / 180.) * 20;
-		//float ratio = ((arduino[1].angleX + 90) / 180.) * 5;
-		//float fc = ((arduino[1].angleY + 90) / 180.) * 50+100 ;	
+		float index = ((arduino[0].angleX + 90) / 180.) * 20;
+		float ratio = ((arduino[0].angleX + 90) / 180.) * 5;
+		float fc = ((arduino[0].angleY + 90) / 180.) * 1000 + 40;	
+		
+		float index1 = ((arduino[1].angleX + 90) / 180.) * 20;
+		float ratio1 = ((arduino[1].angleX + 90) / 180.) * 5;
+		float fc1 = ((arduino[1].angleY + 90) / 180.) * 1000 + 40;	
 		
 		//fmSynth[0].resetEnvelope(arduino[1].veloX, arduino[1].veloY, arduino[1].veloZ);
 		
 		while(io()){
 			
-			fmSynth[0].volume[currentRead] = fmSynth[0].currentVolume(arduino[1].veloX, arduino[1].veloY, arduino[1].veloZ);	
+			fmSynth[0].volume[currentRead] = fmSynth[0].currentVolume(arduino[0].veloX, arduino[0].veloY, arduino[0].veloZ);	
+			fmSynth[1].volume[currentRead] = fmSynth[1].currentVolume(arduino[1].veloX, arduino[1].veloY, arduino[1].veloZ);	
+			
 			currentRead++;
 			if(currentRead == meanArray){
 				currentRead = 0;		
 			}
-			float volume = fmSynth[0].averageFilter(fmSynth[0].volume, meanArray);
-			//float out = fmSynth[0].modulate(fc, ratio, index) * fmSynth[0].env();
-			float out = fmSynth[1].wavOsc(arduino[1].angleX, arduino[1].angleY);
-			io.out(0) = out * volume;
-			io.out(1) = out;// * volume;
+			
+			float volume[2];
+			volume[0] = fmSynth[0].averageFilter(fmSynth[0].volume, meanArray);
+			volume[1] = fmSynth[1].averageFilter(fmSynth[1].volume, meanArray);
+			
+			float out[2];
+			out[0] = fmSynth[0].modulate(fc, ratio, index);
+			out[1] = fmSynth[1].modulate(fc1, ratio1, index1);
+			//out[1] = fmSynth[1].wavOsc(arduino[1].angleX, arduino[1].angleY);
+			
+			io.out(0) = out[0] * volume[0];
+			io.out(1) = out[1] * volume[1];
 		}
 	} 
 
