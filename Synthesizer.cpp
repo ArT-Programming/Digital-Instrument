@@ -6,7 +6,8 @@
 using namespace al;
 
 /*
-	WaveTable, frequency modulation, synth class, mouse control
+	WaveTable, frequency modulation, synth class, mouse control.
+	Duration, pitch, frequency mod
 */
 
 class Synth{
@@ -16,27 +17,28 @@ public:
 	gam::ArrayPow2<float> table[4];	// Wavetable
 	gam::ADSR<> env[13];
 	
-	bool Key[13], modulate;
-	float freq[127], note[13],	mousePosX, mousePosY;
-	int waveform, wavetable, oct;
+	bool Key[13], modulate, waveform, seqOn;
+	float freq[127], note[13],	mousePosX, mousePosY, seq[8], seqDuration;
+	int wavetable, oct, keyAmount;
+	double time;
 	
 	Synth(){
 	std::cout << "Synthesizer!!" << "\n";
 	std::cout << "controls: " << "\n";
-	std::cout << "z - enable wavetable synth" << "\n";
-	std::cout << "x - disable wavetable synth" << "\n";
+	std::cout << "z - enable and disable wavetable synth" << "\n";
+	//std::cout << "x - disable wavetable synth" << "\n";
 	std::cout << "m - enable and disable FM - Use mouse to control ratio and index" << "\n";
-	std::cout << "wavetable synthesis: 0 - Clausen function, 1 - Square wave, 2 - Saw wave, 3 - Triangle wave " << "\n";
+	std::cout << "wavetable synthesis control keys: 0 - Clausen function, 1 - Square wave, 2 - Saw wave, 3 - Triangle wave " << "\n";
 	
 		for(int i = 0; i <= 127; i++){
 			freq[i] = (pow(2., ((i - 69) / 12.))) * 440;
 		}
 		// set variables
-		mousePosX = 1;
-		mousePosY = 1;
+		mousePosX = mousePosY = seqDuration = 1;
 		oct = 5;
 		waveform = 0;
-		wavetable = 0;
+		wavetable = time = 0;
+		keyAmount = 13;
 		
 		for(int i = 0; i < 13; i++){
 			env[i].attack(0.5);
@@ -48,6 +50,9 @@ public:
 		}
 		for(int i = 0; i < 4; i++){
 			table[i].resize(2048);
+		}
+		for(int i = 0; i < 8; i++){
+			seq[i] = 0;
 		}
 		
 		for(int k=1; k<=16; k++){
@@ -62,7 +67,7 @@ public:
 	void check(){
 		if(waveform == 0){
 			if(modulate){ // frequency modulation on sine
-				for(int i = 0; i < 13; i++){	
+				for(int i = 0; i < keyAmount; i++){	
 					float fc = freq[oct * 12 + i];
 					float ratio = mousePosX;
 					float I = mousePosY;
@@ -80,7 +85,7 @@ public:
 					} 
 				}		
 		}else{
-			for(int i = 0; i < 13; i++){
+			for(int i = 0; i < keyAmount; i++){
 				src[i].freq(freq[oct * 12 + i]);
 				if(Key[i]){	
 					note[i] = src[i]();	
@@ -90,7 +95,7 @@ public:
 		}
 	else if(waveform == 1){
 		if(modulate){ // frequency modulation on osc
-			for(int i = 0; i < 13; i++){	
+			for(int i = 0; i < keyAmount; i++){	
 				float fc = freq[oct * 12 + i];
 				float ratio = mousePosX;
 				float I = mousePosY;
@@ -109,7 +114,7 @@ public:
 					} 
 				}
 			}else{
-				for(int i = 0; i < 13; i++){
+				for(int i = 0; i < keyAmount; i++){
 					osc[i].source(table[wavetable]);
 					osc[i].freq(freq[oct * 12 + i]);
 					if(Key[i]){		
@@ -117,6 +122,18 @@ public:
 						} 
 					}
 				}		
+			}
+			if(seqOn){
+				int x = 0;
+				time = 0;
+				while(samplerOn){
+					if(time > samplerDuration){ // time for note
+						time -= samplerDuration;
+						
+					}
+				}
+				
+
 			}	
 		}
 	// manage the output	
@@ -200,12 +217,22 @@ public:
 			if(oct<0) oct = 0;
 		break;
 		case 'z':
-			waveform = 1;
-			std::cout<< "Wavetable mode enabled" << "\n";
+			if(!waveform){
+				waveform = 1;
+				std::cout<< "Wavetable mode enabled" << "\n";
+			} else if (waveform){
+				waveform = 0;
+				std::cout<< "Sine mode enabled" << "\n";
+			}
 		break;
 		case 'x':
-			waveform = 0;
-			std::cout<< "Sine mode enabled" << "\n";
+				if(!seqOn){
+				seqOn = 1;
+				std::cout<< "Sequencer mode enabled" << "\n";
+			} else if (seqOn){
+				seqOn = 0;
+				std::cout<< "Sequencer mode disabled" << "\n";
+			}
 		break;
 		case 'm':
 			if(!modulate){
@@ -280,7 +307,8 @@ public:
 		}
 	}
 	
-	void Mouse(const Mouse& m){
+	void Mouse(const ViewpointWindow& w, const Mouse& m){
+		samplerDuration = float(m.x() / w.width());
 		mousePosX = float(m.x());
 		mousePosY = float(m.y());
 	}	
@@ -299,10 +327,11 @@ public:
 
 	void onSound(AudioIOData& io){
 		gam::sampleRate(io.fps());
-		
+		synth.time += io.secondsPerBuffer();
+	
 		while(io()){
 			synth.check();
-		
+			
 			float out = synth.output();	
 	
 			io.out(0) = out;
@@ -316,11 +345,8 @@ public:
 	virtual void onKeyUp(const ViewpointWindow& w, const Keyboard& k){
 		synth.KeySlip(k);		
 	}
-	virtual void onMouseDrag(const ViewpointWindow& w, const Mouse& m){
-		synth.Mouse(m);
-	}
-	virtual void onMouseDown(const ViewpointWindow& w, const Mouse& m){
-		synth.Mouse(m);
+	virtual void onMouseMove(const ViewpointWindow& w, const Mouse& m){
+		synth.Mouse(w, m);
 	}
 };
 
