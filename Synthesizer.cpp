@@ -126,9 +126,9 @@ public:
 			if(seqOn){
 				int x = 0;
 				time = 0;
-				while(samplerOn){
-					if(time > samplerDuration){ // time for note
-						time -= samplerDuration;
+				while(seqOn){
+					if(time > seqDuration){ // time for note
+						time -= seqDuration;
 						
 					}
 				}
@@ -308,7 +308,7 @@ public:
 	}
 	
 	void Mouse(const ViewpointWindow& w, const Mouse& m){
-		samplerDuration = float(m.x() / w.width());
+		seqDuration = float(m.x() / w.width());
 		mousePosX = float(m.x());
 		mousePosY = float(m.y());
 	}	
