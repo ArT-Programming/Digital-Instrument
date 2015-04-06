@@ -1,4 +1,5 @@
 #include "iostream"
+#include "al_AudioApp.hpp"
 #include "allocore/io/al_App.hpp"
 #include "Gamma/Oscillator.h"
 #include "Gamma/Envelope.h"
@@ -12,6 +13,7 @@ using namespace al;
 
 class Synth{
 public:
+	
 	gam::Sine<> src[13], mod;	
 	gam::Osc<> osc[13];
 	gam::ArrayPow2<float> table[4];	// Wavetable
@@ -314,7 +316,7 @@ public:
 	}	
 };
 
-class MyApp : public App{
+class MyApp : public AudioApp{
 public:
 	Synth synth;
 
