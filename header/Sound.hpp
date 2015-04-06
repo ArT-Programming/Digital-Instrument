@@ -1,30 +1,33 @@
 #include "Gamma/Oscillator.h"
 #include "Gamma/Envelope.h"
+#include "Gamma/Delay.h"
+#include "Gamma/Filter.h"
 #include <iostream>
 
 class Synth{
 public:
 gam::Sine<> car;	// Carrier sine (gets its frequency modulated)
-gam::Sine<> mod;	// Modulator sine (used to modulate frequency)
+gam::Saw<> mod;	// Modulator sine (used to modulate frequency)
 gam::Osc<> osc[4][3];// Wavetable oscillators
 gam::AD<> env;
 gam::ArrayPow2<float> table[4];	// Wavetable
 gam::Delay<> delay;
+gam::OnePole<> lpf;
 
 float freq;
 float volume[20000];
 float resetTime;
 
 	Synth(){
-		delay.maxDelay(1);
+		delay.maxDelay(2);
 		
 		freq = 440;
 		for(int i = 0; i<100; i++){
 			volume[i] = 0;
 		}
 		resetTime = 1;
-		env.attack(0.1);
-		env.decay(0.5);
+		env.attack(0.01);
+		env.decay(0.3);
 		
 		// Set the table size; must be a power of 2
 		for(int i = 0; i < 4; i++){
@@ -52,11 +55,18 @@ float resetTime;
 		}
 	}
 	
-	float echo(float source, float delayTime, float feedback = 0.99){
+	float echo(float source, float delayTime, float feedback = 0.9, float cutoff = 5000){
 		delay.delay(delayTime);
 		float Echo = delay();
+		lpf.freq(cutoff);
+		Echo = lpf(Echo);
 		delay(source + Echo * feedback);
-		return source + Echo;
+		return Echo;
+	}
+	
+	void clip(float& source, double max, double min){
+		if(source > max) source = max;
+		else if(source < min) source = min;
 	}
 	
 	float wavOsc(float angleX, float angleY){
@@ -156,9 +166,18 @@ float resetTime;
 	}
 	
 	void resetEnvelope(float x = 0, float y = 0, float z = 0){
-		if(x > 180) env.reset();
-		else if(y > 180) env.reset();
-		}
+		//if(resetTime > 0.5){
+			//resetTime -= 0.5;
+			if(x > 180){ 
+				env.reset();
+				//std::cout<<"reset on X \n";
+			}
+			else if(y > 180){ 
+				env.reset();
+				//std::cout<<"reset on Y \n"; env.reset();
+			}
+		//}
+	}
 	
 };
 

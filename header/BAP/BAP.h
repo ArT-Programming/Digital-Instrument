@@ -133,18 +133,18 @@ public:
 			}
 		
 			// Can the buffer contain at least one packet?
-			if((mBegin+3) < end){
+			if((mBegin+unsigned(3)) < end){
 				unsigned char bseq = mBuffer[mBegin+1];
 				unsigned char blen = mBuffer[mBegin+2];
 				//std::cout << unsigned(bseq) << " " << unsigned(blen) << "\n";
 
 				// Can the buffer contain a packet with size 'len'?
-				if((mBegin+3+blen) < end){
+				if((mBegin+unsigned(3)+blen) < end){
 
 					// First, ensure packet checksum is correct
 					unsigned char bchk = mBuffer[mBegin+3+blen];
 					unsigned char chk = 0;
-					for(unsigned j=mBegin+1; j<mBegin+3+blen; ++j){
+					for(unsigned j=mBegin+1; j<mBegin+unsigned(3)+blen; ++j){
 						//std::cout << "CHK += " << unsigned(buffer[j]) << "\n";
 						chk += mBuffer[j];
 					}
