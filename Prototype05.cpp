@@ -12,16 +12,17 @@ using namespace al;
 
 class MyApp : public AudioApp{
 public:
-	Arduino arduino[2];
+	static const int A = 2;
+	Arduino arduino[A];
 	Values values;
-	Synth fmSynth[2];
+	Synth fmSynth[A];
 	int currentRead;
 	int meanArray;
 	float time;
 	
 	MyApp():
-	values(2,2,3,"COM3",19200) // arduino, sensor, amount of values pr sensor, COMPORT, baudrate 
-	//values(2,2,3,"/dev/tty.usbmodem1411",19200) // arduino, sensor, amount of values pr sensor, COMPORT, baudrate 
+	values(A,2,3,"COM3",19200) // arduino, sensor, amount of values pr sensor, COMPORT, baudrate 
+	//values(A,2,3,"/dev/tty.usbmodem1411",19200) // arduino, sensor, amount of values pr sensor, COMPORT, baudrate 
 	{
 		initAudio(44100,128,2,0);
 		currentRead = 0;

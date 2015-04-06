@@ -9,12 +9,15 @@ gam::Sine<> mod;	// Modulator sine (used to modulate frequency)
 gam::Osc<> osc[4][3];// Wavetable oscillators
 gam::AD<> env;
 gam::ArrayPow2<float> table[4];	// Wavetable
+gam::Delay<> delay;
 
 float freq;
 float volume[20000];
 float resetTime;
 
 	Synth(){
+		delay.maxDelay(1);
+		
 		freq = 440;
 		for(int i = 0; i<100; i++){
 			volume[i] = 0;
@@ -47,6 +50,13 @@ float resetTime;
 				osc[i][j].source(table[0]);		
 			}
 		}
+	}
+	
+	float echo(float source, float delayTime, float feedback = 0.99){
+		delay.delay(delayTime);
+		float Echo = delay();
+		delay(source + Echo * feedback);
+		return source + Echo;
 	}
 	
 	float wavOsc(float angleX, float angleY){
