@@ -19,7 +19,7 @@ float volume[20000];
 float resetTime;
 
 	Synth(){
-		delay.maxDelay(2);
+		delay.maxDelay(3);
 		
 		freq = 440;
 		for(int i = 0; i<100; i++){

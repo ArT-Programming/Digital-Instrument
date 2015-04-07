@@ -69,7 +69,7 @@ public:
 			fmSynth[1].clip(volume[1],1,0);
 			float delay[2];
 			delay[0] = fmSynth[0].echo(out[0], 0.2, 0.2, 10000);
-			delay[1] = fmSynth[1].echo(out[1], 1.1 - volume[1], .5, 15000);
+			delay[1] = fmSynth[1].echo(out[1], 0.2, .5, 15000);
 			
 			//float outs = out[1] + delay;
 			//fmSynth[1].clip(outs,0.5,-0.5);
