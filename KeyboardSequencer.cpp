@@ -17,14 +17,15 @@ public:
 	gam::ADSR<> env[8];
 	gam::Accum<> tmr;
 	
-	Mesh quad[8][4];
+	Mesh quad[8][8];
 
-	bool KeyOn[8][4];
+	bool KeyOn[8][8], start;
 	int pentaScale[8], counter;
 	float color[8];
 	
 	Sequencer(){
 		counter = 0;
+		start = false;
 		tmr.freq(4);
 		pentaScale[0] = 69;
 		pentaScale[1] = 72;
@@ -42,14 +43,13 @@ public:
 			env[i].decay(0.05);
 			env[i].sustain(0.5);
 			env[i].release(0.2);
-			for(int j = 0; j < 4; j++){
+			for(int j = 0; j < 8; j++){
 				KeyOn[i][j] = false;
 				quad[i][j].primitive(Graphics::QUADS);
-				quad[i][j].vertex(2.*(i/7.) - 1.0 , 1.*(j/3.) - 0.5);
-				quad[i][j].vertex(2.*(i/7.) - 0.8 , 1.*(j/3.) - 0.5);
-				quad[i][j].vertex(2.*(i/7.) - 0.8 , 1.*(j/3.) - 0.3);
-				quad[i][j].vertex(2.*(i/7.) - 1.0 , 1.*(j/3.) - 0.3);
-				//quad[i][j].color(RGB(1));
+				quad[i][j].vertex(2.*(i/7.) - 1.0 , 2.*(j/7.) - 1.0);
+				quad[i][j].vertex(2.*(i/7.) - 0.8 , 2.*(j/7.) - 1.0);
+				quad[i][j].vertex(2.*(i/7.) - 0.8 , 2.*(j/7.) - 0.8);
+				quad[i][j].vertex(2.*(i/7.) - 1.0 , 2.*(j/7.) - 0.8);
 			}
 		}
 		
@@ -57,11 +57,11 @@ public:
 	}
 	
 	void check(){
+		counter++;
+		if(counter == 8) counter = 0;
 		for(int i = 0; i < 8; i++){
-			if(KeyOn[i][counter]) env[i].reset();
+			if(KeyOn[counter][i]) env[i].reset();
 		}
-		if(tmr()) counter++;
-		if(counter == 4) counter = 0;
 	}
 	
 	// manage the output	
@@ -72,10 +72,10 @@ public:
 			out += src[i]() * color[i];
 			
 		}
-		out *= volume;	
+		out *= volume * start;	
 		return out;
 	}
-		
+	/*
 	void KeyPress(const Keyboard& k){
 		switch(k.key()){
 		case '1': KeyOn[0][0] = !KeyOn[0][0]; break;
@@ -115,8 +115,9 @@ public:
 		case ',': KeyOn[7][3] = !KeyOn[7][3]; break;
 		}
 	}
-	
+	*/
 	void getMousePos(const ViewpointWindow& w, const Mouse& m, Vec3d cam){
+		start = true;
 		// We have narrowed the camera lens constant down to be 0.26795
 		float cX = cam.z * 0.26795 * w.aspect();
 		float cY = cam.z * 0.26795;
@@ -128,10 +129,11 @@ public:
 		
 		
 		for(int i = 0; i < 8; i++){
-			for(int j = 0; j < 4; j++){
+			for(int j = 0; j < 8; j++){
 				if(mouseX > quad[i][j].vertices()[0].x && mouseX < quad[i][j].vertices()[2].x){
 					if(mouseY > quad[i][j].vertices()[0].y && mouseY < quad[i][j].vertices()[2].y){
 						KeyOn[i][j] = !KeyOn[i][j];
+						
 					}
 				}
 			}
@@ -140,10 +142,10 @@ public:
 	
 	void draw(Graphics& g){
 		for(int i = 0; i < 8; i++){
-			for(int j = 0; j < 4; j++){
+			for(int j = 0; j < 8; j++){
 				if(counter == j) g.color(RGB(color[i]+0.1));
 				else g.color(RGB(0.1));
-				g.draw(quad[i][j]);
+				g.draw(quad[j][i]);
 			}
 		}
 	}
@@ -155,7 +157,7 @@ public:
 	Vec3d cam;
 
 	MyApp(){
-		nav().pos(0,0,4);
+		nav().pos(0,0,5);
 		cam = nav().pos();
 		initWindow();
 		initAudio();
@@ -165,16 +167,16 @@ public:
 	void onSound(AudioIOData& io){
 		gam::sampleRate(io.fps());
 		while(io()){
-			seq.check();
+			if(seq.tmr()) seq.check();
 			float out = seq.output();	
 			io.out(0) = out;
 			io.out(1) = out;	
 		}
 	}
-	// Keyboard/mouse input callbacks
+	/*// Keyboard/mouse input callbacks
 	virtual void onKeyDown(const ViewpointWindow& w, const Keyboard& k){
 		seq.KeyPress(k);
-	}
+	}*/
 	virtual void onMouseDown(const ViewpointWindow& w, const Mouse& m){
 		seq.getMousePos(w, m, cam);
 	}
