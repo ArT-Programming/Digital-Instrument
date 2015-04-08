@@ -16,9 +16,12 @@ public:
 	gam::Sine<> src[8];
 	gam::ADSR<> env[8];
 	gam::Accum<> tmr;
+	
+	Mesh quad[8][4];
 
 	bool KeyOn[8][4];
 	int pentaScale[8], counter;
+	float color[8];
 	
 	Sequencer(){
 		counter = 0;
@@ -41,8 +44,16 @@ public:
 			env[i].release(0.2);
 			for(int j = 0; j < 4; j++){
 				KeyOn[i][j] = false;
+				quad[i][j].primitive(Graphics::QUADS);
+				quad[i][j].vertex(2.*(i/7.) - 1.0 , 1.*(j/3.) - 0.5);
+				quad[i][j].vertex(2.*(i/7.) - 0.8 , 1.*(j/3.) - 0.5);
+				quad[i][j].vertex(2.*(i/7.) - 0.8 , 1.*(j/3.) - 0.3);
+				quad[i][j].vertex(2.*(i/7.) - 1.0 , 1.*(j/3.) - 0.3);
+				//quad[i][j].color(RGB(1));
 			}
-		}	
+		}
+		
+		
 	}
 	
 	void check(){
@@ -57,7 +68,9 @@ public:
 	float output(float volume = 0.1){
 		float out = 0;
 		for(int i = 0; i < 8; i++){
-			out += src[i]() * env[i]();
+			color[i] = env[i]();
+			out += src[i]() * color[i];
+			
 		}
 		out *= volume;	
 		return out;
@@ -102,6 +115,16 @@ public:
 		case ',': KeyOn[7][3] = !KeyOn[7][3]; break;
 		}
 	}
+	
+	void draw(Graphics& g){
+		for(int i = 0; i < 8; i++){
+			for(int j = 0; j < 4; j++){
+				if(counter == j) g.color(RGB(color[i]));
+				else g.color(RGB(0.1));
+				g.draw(quad[i][j]);
+			}
+		}
+	}
 };
 
 class MyApp : public App{
@@ -127,6 +150,10 @@ public:
 	// Keyboard/mouse input callbacks
 	virtual void onKeyDown(const ViewpointWindow& w, const Keyboard& k){
 		seq.KeyPress(k);
+	}
+	
+	void onDraw(Graphics& g, const Viewpoint& v){
+		seq.draw(g);
 	}
 };
 
