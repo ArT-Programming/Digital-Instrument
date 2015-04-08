@@ -1,5 +1,5 @@
 #include "iostream"
-#include "al_AudioApp.hpp"
+#include "header/al_AudioApp.hpp"
 #include "allocore/io/al_App.hpp"
 #include "Gamma/Oscillator.h"
 #include "Gamma/Envelope.h"
