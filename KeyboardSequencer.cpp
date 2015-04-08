@@ -143,8 +143,11 @@ public:
 	void draw(Graphics& g){
 		for(int i = 0; i < 8; i++){
 			for(int j = 0; j < 8; j++){
-				if(counter == j) g.color(RGB(color[i]+0.1));
-				else g.color(RGB(0.1));
+				if(KeyOn[j][i]){
+					if(counter == j) g.color(HSV(1/3., fabs(color[i]-1), 0.5+color[i]*0.5));
+					else g.color(HSV(1/3., 1, 0.5));
+				}
+				else g.color(HSV(0,0,0.3));
 				g.draw(quad[j][i]);
 			}
 		}
