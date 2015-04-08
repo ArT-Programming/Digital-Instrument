@@ -47,9 +47,9 @@ public:
 		for(int i = 0; i < 13; i++){
 			env[i].sustainDisable();
 			env[i].attack(1./1000);
-			env[i].decay(0.2);
+			env[i].decay(0.3);
 			env[i].sustain(0.8);
-			env[i].release(0.3);
+			env[i].release(0.1);
 			Key[i] = 0;
 			note[i] = 0;
 		}
@@ -130,7 +130,7 @@ public:
 			}
 			if(seqOn){
 				if(counter == 13) counter = 0;
-				tmr.freq(seqDuration * 10);
+				tmr.freq(seqDuration * 100);
 				if(tmr()){
 					env[counter].reset();
 					counter++;
@@ -346,9 +346,9 @@ public:
 	virtual void onKeyDown(const ViewpointWindow& w, const Keyboard& k){
 		synth.KeyPress(k);
 	}
-	/*virtual void onKeyUp(const ViewpointWindow& w, const Keyboard& k){
+	virtual void onKeyUp(const ViewpointWindow& w, const Keyboard& k){
 		synth.KeySlip(k);		
-	}*/
+	}
 	virtual void onMouseMove(const ViewpointWindow& w, const Mouse& m){
 		synth.Mouse(w, m);
 	}
