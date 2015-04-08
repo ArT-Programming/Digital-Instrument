@@ -116,10 +116,32 @@ public:
 		}
 	}
 	
+	void getMousePos(const ViewpointWindow& w, const Mouse& m, Vec3d cam){
+		// We have narrowed the camera lens constant down to be 0.26795
+		float cX = cam.z * 0.26795 * w.aspect();
+		float cY = cam.z * 0.26795;
+		
+		// Convert the pixel values to coordinates
+		float mouseX = ( (2. * cX / (cX - cam.x)) * m.x() / w.width()  - 1) * (cX - cam.x);
+		float mouseY = (-(2. * cY / (cY + cam.y)) * m.y() / w.height() + 1) * (cY + cam.y);
+		
+		
+		
+		for(int i = 0; i < 8; i++){
+			for(int j = 0; j < 4; j++){
+				if(mouseX > quad[i][j].vertices()[0].x && mouseX < quad[i][j].vertices()[2].x){
+					if(mouseY > quad[i][j].vertices()[0].y && mouseY < quad[i][j].vertices()[2].y){
+						KeyOn[i][j] = !KeyOn[i][j];
+					}
+				}
+			}
+		}
+	}
+	
 	void draw(Graphics& g){
 		for(int i = 0; i < 8; i++){
 			for(int j = 0; j < 4; j++){
-				if(counter == j) g.color(RGB(color[i]));
+				if(counter == j) g.color(RGB(color[i]+0.1));
 				else g.color(RGB(0.1));
 				g.draw(quad[i][j]);
 			}
@@ -130,9 +152,11 @@ public:
 class MyApp : public App{
 public:
 	Sequencer seq;
+	Vec3d cam;
 
 	MyApp(){
 		nav().pos(0,0,4);
+		cam = nav().pos();
 		initWindow();
 		initAudio();
 		window().remove(navControl());
@@ -151,7 +175,9 @@ public:
 	virtual void onKeyDown(const ViewpointWindow& w, const Keyboard& k){
 		seq.KeyPress(k);
 	}
-	
+	virtual void onMouseDown(const ViewpointWindow& w, const Mouse& m){
+		seq.getMousePos(w, m, cam);
+	}
 	void onDraw(Graphics& g, const Viewpoint& v){
 		seq.draw(g);
 	}
