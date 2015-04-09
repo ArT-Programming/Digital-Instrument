@@ -13,7 +13,7 @@ using namespace al;
 
 class Sequencer{
 public:
-	static const int cols = 16; // |||
+	static const int cols = 64; // |||
 	static const int rows = 16; // ---
 	gam::Sine<> src[rows];
 	gam::ADSR<> env[rows],colorEnv[rows];
@@ -34,7 +34,7 @@ public:
 	dorian{0, 2, 3, 5, 7, 9, 10}
 	{
 		counter = 0;
-		tmr.freq(4);
+		tmr.freq(8);
 		
 		for(int r = 0; r < rows; r++){
 			scale[r] = 60 + penta[r%5] + 12*(r/5);
@@ -107,7 +107,7 @@ public:
 		case 'r': //random
 			for(int c = 0; c < cols; c++){
 				for(int r = 0; r < rows; r++){
-					if(rand() % int(rows * 1.5) == 0)	KeyOn[c][r] = true; 
+					if(rand() % int(rows * 1) == 0)	KeyOn[c][r] = true; 
 					else KeyOn[c][r] = false;
 				}
 			}
