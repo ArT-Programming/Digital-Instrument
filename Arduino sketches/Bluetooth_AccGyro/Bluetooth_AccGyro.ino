@@ -2,8 +2,8 @@
 #include "ITG3200.h"
 #include "MMA7660.h" 
 #include <SoftwareSerial.h>   //Software Serial Port
-#define RxD 11
-#define TxD 10
+#define RxD 7
+#define TxD 6
  
 SoftwareSerial blueToothSerial(RxD,TxD);
 

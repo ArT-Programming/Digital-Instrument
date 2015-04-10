@@ -77,7 +77,7 @@ public:
 			//io.out(1) = outs;
 			
 			io.out(0) = 2*out[0] + delay[0];
-			io.out(1) = out[1] + delay[1];
+			io.out(1) = 2*out[0] + delay[0];//out[1] + delay[1];
 			
 		}
 	} 
