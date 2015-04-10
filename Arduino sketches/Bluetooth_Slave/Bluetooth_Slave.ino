@@ -1,36 +1,10 @@
-/*
-BluetoothShield Demo Code Slave.pde. This sketch could be used with
-Master.pde to establish connection between two Arduino. It can also
-be used for one slave bluetooth connected by the device(PC/Smart Phone)
-with bluetooth function.
-2011 Copyright (c) Seeed Technology Inc.  All right reserved.
- 
-Author: Steve Chang
- 
-This demo code is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
- 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- 
-For more details about the product please check http://www.seeedstudio.com/depot/
- 
-*/
- 
+
  
 /* Upload this sketch into Seeeduino and press reset*/
  
 #include <SoftwareSerial.h>   //Software Serial Port
-#define RxD 6
-#define TxD 7
+#define RxD 10
+#define TxD 11
  
 SoftwareSerial blueToothSerial(RxD,TxD);
  
