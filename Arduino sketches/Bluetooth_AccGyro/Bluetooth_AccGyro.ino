@@ -2,16 +2,38 @@
 #include "ITG3200.h"
 #include "MMA7660.h" 
 #include <SoftwareSerial.h>   //Software Serial Port
+
 #define RxD 7
 #define TxD 6
  
 SoftwareSerial blueToothSerial(RxD,TxD);
+
 String slaveAdd = "\r\n+RTINQ=aa,bb,cc,dd,ee,ff;slave\r\n";
 ITG3200 gyro;
 MMA7660 accelemeter;
-unsigned char ArduinoNumber = 0;
+//unsigned char ArduinoNumber = 0;
+//-----
+void slaveSetup(){
+  
+  blueToothSerial.begin(38400); //Set BluetoothBee BaudRate to default baud rate 38400
+  blueToothSerial.print("\r\n+STWMOD=0\r\n"); //set the bluetooth work in slave mode
+  blueToothSerial.print("\r\n+STBD=38400\r\n"); //tell the bluetooth to communicate at baudrate 38400
+  blueToothSerial.print("\r\n+STNA=slave\r\n"); //set the bluetooth name as "slave"
+  blueToothSerial.print("\r\n+STAUTO=1\r\n"); // Auto-connection should be forbidden here
+  blueToothSerial.print("\r\n+STOAUT=1\r\n"); // Permit Paired device to connect me
+  blueToothSerial.print("\r\n+STPIN=0000\r\n"); //Set SLAVE pincode"0000"
+  delay(2000); // This delay is required.
+  Serial.println("Starting INQ in 1 sec");
+  delay(1000);
+  blueToothSerial.print("\r\n+INQ=1\r\n"); //make the slave bluetooth inquirable 
+  blueToothSerial.print(slaveAdd);
+  Serial.println("The slave bluetooth is inquirable!");
+  delay(2000); // This delay is required.
+  //blueToothSerial.print("\r\n+RTINQ=aa,bb,cc,dd,ee,ff;slave\r\n");
+  blueToothSerial.flush();
+}
 
- 
+//----- 
 void setup() 
 { 
   Serial.begin(9600);
@@ -59,26 +81,8 @@ void loop() {
     Serial.print(" "); 
   }Serial.println("");*/
    blueToothSerial.write(s, 6);
-   delay(20);
+   delay(10);
 } 
  
-void slaveSetup(){
-  
-  blueToothSerial.begin(38400); //Set BluetoothBee BaudRate to default baud rate 38400
-  blueToothSerial.print("\r\n+STWMOD=0\r\n"); //set the bluetooth work in slave mode
-  blueToothSerial.print("\r\n+STBD=38400\r\n"); //tell the bluetooth to communicate at baudrate 38400
-  blueToothSerial.print("\r\n+STNA=slave\r\n"); //set the bluetooth name as "slave"
-  blueToothSerial.print("\r\n+STAUTO=1\r\n"); // Auto-connection should be forbidden here
-  blueToothSerial.print("\r\n+STOAUT=1\r\n"); // Permit Paired device to connect me
-  blueToothSerial.print("\r\n+STPIN=0000\r\n"); //Set SLAVE pincode"0000"
-  delay(2000); // This delay is required.
-  Serial.println("Starting INQ in 1 sec");
-  delay(1000);
-  blueToothSerial.print("\r\n+INQ=1\r\n"); //make the slave bluetooth inquirable 
-  blueToothSerial.print(slaveAdd);
-  Serial.println("The slave bluetooth is inquirable!");
-  delay(2000); // This delay is required.
-  //blueToothSerial.print("\r\n+RTINQ=aa,bb,cc,dd,ee,ff;slave\r\n");
-  blueToothSerial.flush();
-}
+
 
