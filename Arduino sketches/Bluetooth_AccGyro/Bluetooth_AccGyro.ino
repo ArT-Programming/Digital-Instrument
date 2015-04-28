@@ -6,10 +6,11 @@
 #define TxD 6
  
 SoftwareSerial blueToothSerial(RxD,TxD);
-
+String slaveAdd = "\r\n+RTINQ=aa,bb,cc,dd,ee,ff;slave\r\n";
 ITG3200 gyro;
 MMA7660 accelemeter;
 unsigned char ArduinoNumber = 0;
+
  
 void setup() 
 { 
@@ -74,7 +75,7 @@ void slaveSetup(){
   Serial.println("Starting INQ in 1 sec");
   delay(1000);
   blueToothSerial.print("\r\n+INQ=1\r\n"); //make the slave bluetooth inquirable 
-  blueToothSerial.print("\r\n+RTINQ=aa,bb,cc,dd,ee,ff;slave\r\n");
+  blueToothSerial.print(slaveAdd);
   Serial.println("The slave bluetooth is inquirable!");
   delay(2000); // This delay is required.
   //blueToothSerial.print("\r\n+RTINQ=aa,bb,cc,dd,ee,ff;slave\r\n");
