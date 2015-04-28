@@ -59,6 +59,11 @@ public:
     angleY = kalmanY.getAngle(pitch, rateY, dt);
     angleZ += gyro[2];
     //angleZ *= 0.99;
+    
+    if(angleX > 90.) angleX = 90;
+    else if(angleX < -90.) angleX = -90;
+    if(angleY > 90.) angleY = 90;
+    else if(angleY < -90.) angleY = -90;
   }
 	
   void velocity(double dt){
@@ -89,7 +94,7 @@ SoftwareSerial blueToothSerial(RxD,TxD);
 //------------
 //unsigned char seq = 0; // sequence number
 
-const int arduinoAmount = 2;
+const int arduinoAmount = 1;
 const int sensorAmount = 2;
 const int valuesPrSensor = 3;
 
@@ -97,15 +102,22 @@ unsigned long time = 0;
 unsigned long oldTime = 0;
 unsigned long lastTime = 0;
 
-//const int len = arduinoAmount * sensorAmount * valuesPrSensor;
-
 unsigned char arduino[arduinoAmount][sensorAmount][valuesPrSensor];
+unsigned char data[arduinoAmount][3]; // 4 arduinos with angleX, angleY, volume
 
 unsigned char buffer[256]; //Initializes the buffer we will use for storing the incomming serial data. This will have to be greater than the packetSize
-const int packetSize = 7; //The packet size in bytes, defined in the serial sender, one for SOP one for SEQ one for LEN and however many data bytes you have in the array (in this case 8) and one for CHK
-//int howBig = 25;
+const int packetSize = 6; //The packet size in bytes, defined in the serial sender, one for SOP one for SEQ one for LEN and however many data bytes you have in the array (in this case 8) and one for CHK
 
 //---------------
+
+
+int currentVolume(float x = 0, float y = 0, float z = 0){
+  int mean = (x + y + z) / 3.;
+  mean = (mean / 360.) * 127;
+  if(mean > 127) mean = 127;
+  if(mean < 2) mean = 0;
+  return mean;
+}
 
 void setup() 
 { 
@@ -131,53 +143,75 @@ void setup()
 void loop() 
 {
   if(blueToothSerial.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
-    delay(5);
-    int a = int(buffer[0]);
-    int bufVal = 1;
+    int bufVal = 0;
     for(int s = 0; s < sensorAmount; s++){
-      if(a >= arduinoAmount){
-        blueToothSerial.flush();
-        break;
-      }
       for(int v = 0; v < valuesPrSensor; v++){
-        arduino[a][s][v] = buffer[bufVal];
+        arduino[0][s][v] = buffer[bufVal];
         bufVal++;
       }
     }
   }
+  
   time = millis();
-  float dt = calDT(time);
-  // calculate kalman and set the angles and velocity
-  for(int i = 0; i < 1; i++){
-     ard[i].getValues(i, arduino);
-     ard[i].setAngles(dt);
-     ard[i].velocity(dt);
-   }
+  float dt = calDT(time) / 1000.; //frame time in seconds
+  
+  //if(time > lastTime + 20){
+    // calculate kalman and set the angles and velocity
+    for(int a = 0; a < arduinoAmount; a++){
+       ard[a].getValues(a, arduino);
+       ard[a].setAngles(dt);
+       ard[a].velocity(dt);
+       
+       /*Serial.print(ard[a].angleX);
+       Serial.print(" ");
+       Serial.print(ard[a].angleY);
+       Serial.print(" ");
+       Serial.print(ard[a].angleZ);
+       Serial.print(" ");*/
+       int volume = currentVolume(ard[0].veloX, ard[0].veloY, ard[0].veloZ);
+       
+       data[a][0] = ((ard[a].angleX + 90) / 180.) * 127;
+       data[a][1] = ((ard[a].angleY + 90) / 180.) * 127;
+       data[a][2] = volume;
+     }
+     /*
+      for(int s = 0; s < sensorAmount; s++){
+        for(int v = 0; v < valuesPrSensor; v++){
+          Serial.print(arduino[0][s][v]);
+          Serial.print(" ");
+        }
+      }
+     lastTime = time;
+     Serial.println();*/
+  //}
   // 0 is gyro and 1 is acc
   
-  
-  
-    // send the midi data
-    MIDI.sendControlChange(20, data[0], 1);
-    //MIDI.sendControlChange(21, data[0], 1);
-    //MIDI.sendControlChange(22, data[0], 1);
-    //MIDI.sendControlChange(23, data[0], 1);
+    int MidiNo = 20;
+    
+    for(int a = 0; a < arduinoAmount; a++){
+      for(int v = 0; v < 3; v++){
+        MIDI.sendControlChange(MidiNo, data[a][v], 1);
+        MidiNo++;
+    }
+    MidiNo += 7;
   }
+}
   
 
 float calDT(unsigned long time){
   float dt = time - oldTime;  
   oldTime = time;
   return dt;
-  }	
- 
+}	
+
+
 void masterSetup()
 {
   blueToothSerial.begin(38400); //Set BluetoothBee BaudRate to default baud rate 38400
   blueToothSerial.print("\r\n+STWMOD=1\r\n");//set the bluetooth work in master mode
   blueToothSerial.print("\r\n+STBD=38400\r\n"); //tell the bluetooth to communicate at baudrate 38400
   blueToothSerial.print("\r\n+STNA=master\r\n");//set the bluetooth name as "master"
-  blueToothSerial.print("\r\n+STAUTO=0\r\n"); // Auto-connection should be forbidden here
+  blueToothSerial.print("\r\n+STAUTO=1\r\n"); // Auto-connection should be forbidden here
   blueToothSerial.print("\r\n+STOAUT=1\r\n"); // Permit Paired device to connect me
   blueToothSerial.print("\r\n+STPIN=0000\r\n");//Set Master pincode"0000",it must be same as Slave pincode
   delay(2000); // This delay is required.
@@ -186,8 +220,6 @@ void masterSetup()
   //Serial.println("Master is inquiring!");
   delay(2000); // This delay is required.
     
-  //blueToothSerial.print("\r\n+CONN=0,18,E4,C,67,FA\r\n");
+  //blueToothSerial.print("\r\n+CONN=0,18,E4,C,67,A\r\n");
   blueToothSerial.print("\r\n+CONN=aa,bb,cc,dd,ee,ff\r\n");  
 }
- 
-
