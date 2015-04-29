@@ -8,7 +8,7 @@
  
 SoftwareSerial blueToothSerial(RxD,TxD);
 
-String slaveAdd = "\r\n+RTINQ=aa,bb,cc,dd,ee,ff;slave\r\n";
+String slaveAdd = "\r\n+RTINQ=bb,bb,cc,dd,ee,ff;slave\r\n";
 ITG3200 gyro;
 MMA7660 accelemeter;
 //unsigned char ArduinoNumber = 0;

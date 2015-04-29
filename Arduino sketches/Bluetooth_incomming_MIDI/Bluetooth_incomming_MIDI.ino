@@ -5,6 +5,8 @@
 #define RxD 7
 #define TxD 6
 
+String slaveAdd = "\r\n+CONN=bb,bb,cc,dd,ee,ff\r\n";
+
 class Arduino{
 public:
   float gyro[3];
@@ -79,15 +81,6 @@ public:
 
 Arduino ard[4];
 
-String retSymb = "+RTINQ=";//start symble when there's any return
-String slaveName = ";SeeedBTSlave";//Set the Slave name ,caution that ';'must be included
-int nameIndex = 0;
-int addrIndex = 0;
-
-String recvBuf;
-String slaveAddr;
-
-String connectCmd = "\r\n+CONN=";
 
 SoftwareSerial blueToothSerial(RxD,TxD);
 
@@ -221,5 +214,5 @@ void masterSetup()
   delay(2000); // This delay is required.
     
   //blueToothSerial.print("\r\n+CONN=0,18,E4,C,67,A\r\n");
-  blueToothSerial.print("\r\n+CONN=aa,bb,cc,dd,ee,ff\r\n");  
+  blueToothSerial.print(slaveAdd);  
 }
