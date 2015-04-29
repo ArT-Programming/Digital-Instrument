@@ -126,7 +126,7 @@ const int arduinoAmount = 2;
 const int sensorAmount = 2;
 const int valuesPrSensor = 3;
 
-Arduino ard[arduinoAmount];
+Arduino ard[2];
 int volume[arduinoAmount];
 
 unsigned long time = 0;
@@ -165,18 +165,18 @@ void setup()
   pinMode(TxD0, OUTPUT);
   masterSetup0();
   
-  //pinMode(RxD1, INPUT);
-  //pinMode(TxD1, OUTPUT);
-  //masterSetup1();
+  pinMode(RxD1, INPUT);
+  pinMode(TxD1, OUTPUT);
+  masterSetup1();
   
   //wait 1s and flush the serial buffer
   delay(1000);
   masterSerial0.flush();
-  //masterSerial1.flush();
+  masterSerial1.flush();
 } 
  
-void loop() 
-{
+void loop(){
+  masterSerial0.listen();
   if(masterSerial0.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
     int bufVal = 0;
     for(int s = 0; s < sensorAmount; s++){
@@ -186,7 +186,7 @@ void loop()
       }
     }
   }
-  
+  masterSerial1.listen();
   if(masterSerial1.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
     int bufVal = 0;
     for(int s = 0; s < sensorAmount; s++){
@@ -197,6 +197,7 @@ void loop()
     }
   }
   
+  time = millis();
   float dt = calDT(time) / 1000.; //frame time in seconds
   
   //if(time > lastTime + 20){
@@ -212,24 +213,40 @@ void loop()
        Serial.print(" ");
        Serial.print(ard[a].angleZ);
        Serial.print(" ");*/
-       volume[a] = currentVolume(ard[0].veloX, ard[0].veloY, ard[0].veloZ);
+       volume[a] = currentVolume(ard[a].veloX, ard[a].veloY, ard[a].veloZ);
        
        data[a][0] = ((ard[a].angleX + 90) / 180.) * 127;
        data[a][1] = ((ard[a].angleY + 90) / 180.) * 127;
        data[a][2] = volume[a];
+       
+       Serial.print(data[a][0]);
+       Serial.print(" ");
+       Serial.print(data[a][1]);
+       Serial.print(" ");
+       Serial.print(data[a][2]);
+       Serial.print("            ");
      }
+     Serial.println();
      /*
       for(int s = 0; s < sensorAmount; s++){
         for(int v = 0; v < valuesPrSensor; v++){
-          Serial.print(arduino[0][s][v]);
+          Serial.print(int(arduino[0][s][v]));
           Serial.print(" ");
         }
       }
-     lastTime = time;
-     Serial.println();*/
+      
+      Serial.print("           ");
+      
+      for(int s = 0; s < sensorAmount; s++){
+        for(int v = 0; v < valuesPrSensor; v++){
+          Serial.print(int(arduino[1][s][v]));
+          Serial.print(" ");
+        }
+      }
+     Serial.println();
   //}
   // 0 is gyro and 1 is acc
-  
+  /*
     int MidiNo = 20;
     
     for(int a = 0; a < arduinoAmount; a++){
@@ -237,8 +254,9 @@ void loop()
         MIDI.sendControlChange(MidiNo, data[a][v], 1);
         MidiNo++;
     }
-    MidiNo += 7;
+    MidiNo += 17;
   }
+  */
 }
   
 

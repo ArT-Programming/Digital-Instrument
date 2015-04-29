@@ -6,12 +6,30 @@
 #define TxD 6
 
 String retSymb = "+RTINQ=";//start symble when there's any return
+/*
+String slaveName = "slave0";//Set the Slave name ,caution that ';'must be included
+String slaveAddr = "\r\n+CONN=0,18,E4,C,67,FD\r\n";
+String pinCode = "\r\n+STPIN=0000\r\n";
+*/
+
+String slaveName = "slave1";//Set the Slave name ,caution that ';'must be included
+String slaveAddr = "\r\n+CONN=0,18,E4,C,68,1\r\n";
+String pinCode = "\r\n+STPIN=1111\r\n";
+
+/*
 String slaveName = "slave2";//Set the Slave name ,caution that ';'must be included
+String slaveAddr = "\r\n+CONN=0,18,E4,C,67,FA\r\n";
+String pinCode = "\r\n+STPIN=2222\r\n";
+*/
+/*
+String slaveName = "slave3";//Set the Slave name ,caution that ';'must be included
+String slaveAddr = "\r\n+CONN=0,18,E4,C,68,A\r\n";
+String pinCode = "\r\n+STPIN=3333\r\n";
+*/
 int nameIndex = 0;
 int addrIndex = 0;
 
 String recvBuf;
-String slaveAddr;// = "aa,bb,cc,dd,ee,ff";
 
 String connectCmd = "\r\n+CONN=";
 
@@ -20,7 +38,7 @@ SoftwareSerial blueToothSerial(RxD,TxD);
 //------------
 unsigned char seq = 0; // sequence number
 
-const int arduinoAmount = 2;
+const int arduinoAmount = 1;
 const int sensorAmount = 2;
 const int valuesPrSensor = 3;
 
@@ -37,97 +55,23 @@ int howBig = 25;
 
 //---------------
 
-void setup() 
-{ 
-  for(int a = 0; a < arduinoAmount; a++){
-    for(int s = 0; s < sensorAmount; s++){
-      for(int v = 0; v < valuesPrSensor; v++){
-        arduino[a][s][v] = 0;
-      }
-    }
-  }
-  
-  
-  Serial.begin(19200);
-  pinMode(RxD, INPUT);
-  pinMode(TxD, OUTPUT);
-  masterSetup();
-  //wait 1s and flush the serial buffer
-  delay(1000);
-  Serial.flush();
-  blueToothSerial.flush();
-} 
- 
-void loop() 
-{
-  if(blueToothSerial.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
-    //delay(5);
-   // int a = int(buffer[0]);
-    int bufVal = 0;
-    for(int s = 0; s < sensorAmount; s++){
-     /* if(a >= arduinoAmount){
-        blueToothSerial.flush();
-        break;
-      }*/
-      for(int v = 0; v < valuesPrSensor; v++){
-        arduino[0][s][v] = buffer[bufVal];
-        //Serial.print(buffer[bufVal]);
-        //Serial.print(" ");
-        bufVal++;
-      }
-    }
-  }
-  
-  time = millis();
-  
-  if(time > lastTime + 20){
-    lastTime = time;
-    unsigned char data[len]; //Putting the values into the data arrgyroY, expand or decrease as needed
-    int count = 0;
-    for(int a = 0; a < 1; a++){
-      for(int s = 0; s < sensorAmount; s++){
-        for(int v = 0; v < valuesPrSensor; v++){
-          data[count] = arduino[a][s][v];
-          //*
-          Serial.print(int(arduino[a][s][v]));
-          Serial.print(' ');
-          //Serial.print(data[count]);
-          //Serial.print("    ");
-          //*/
-          count++;
-        }
-      }
-    }
-    Serial.println();
-    //*
-    //const unsigned int myBufferSize = 260; //myBufferSize must be greater than the entire size of the package
-    //unsigned char buffer[myBufferSize]; //creates the array, buffer, of size myBufferSize
-   
-    //int bytesWritten = bap::createPacket(buffer, data,len, seq++); //creates the package and returns the size of the package
-    
-    //Serial.write(buffer, bytesWritten); //sends the packet as a series of bytes with the length of bytesWritten
-    //*/
-  }
-  
-} 
- 
 void masterSetup()
 {
   blueToothSerial.begin(38400); //Set BluetoothBee BaudRate to default baud rate 38400
   blueToothSerial.print("\r\n+STWMOD=1\r\n");//set the bluetooth work in master mode
   blueToothSerial.print("\r\n+STBD=38400\r\n"); //tell the bluetooth to communicate at baudrate 38400
   blueToothSerial.print("\r\n+STNA=master\r\n");//set the bluetooth name as "master"
-  blueToothSerial.print("\r\n+STAUTO=0\r\n"); // Auto-connection should be forbidden here
+  blueToothSerial.print("\r\n+STAUTO=1\r\n"); // Auto-connection should be forbidden here
   blueToothSerial.print("\r\n+STOAUT=1\r\n"); // Permit Paired device to connect me
-  blueToothSerial.print("\r\n+STPIN=2222\r\n");//Set Master pincode"0000",it must be same as Slave pincode
+  blueToothSerial.print(pinCode);//Set Master pincode"0000",it must be same as Slave pincode
   delay(2000); // This delay is required.
   blueToothSerial.flush();
   blueToothSerial.print("\r\n+INQ=1\r\n");//make the master inquire
   Serial.println("Master is inquiring!");
   delay(2000); // This delay is required.
     
-  blueToothSerial.print("\r\n+CONN=0,18,E4,C,67,FA\r\n");
-  //blueToothSerial.print("\r\n+CONN=0,18,E4,C,68,1\r\n");  
+  blueToothSerial.print(slaveAddr);
+  
   //blueToothSerial.print("\r\n+RTADDR\r\n");
   //find the target slave
   char recvChar;
@@ -142,10 +86,8 @@ void masterSetup()
       //Serial.println(nameIndex);
       //nameIndex -= 1;//decrease the ';' in front of the slave name, to get the position of the end of the slave address
       if ( nameIndex != -1 ){
-        //Serial.print(recvBuf);
  	//addrIndex = (recvBuf.indexOf(retSymb,(nameIndex - retSymb.length()- 18) ) + retSymb.length());//get the start position of slave address	 		
- 	//slaveAddr = recvBuf.substring(addrIndex, nameIndex);//get the string of slave address 	
-        Serial.println("I AM NOW IN THE IF STATEMENT AND GOING TO BREAK!");
+ 	//slaveAddr = recvBuf.substring(addrIndex, nameIndex);//get the string of slave address
  	break;
       }
     }
@@ -178,4 +120,55 @@ void masterSetup()
       }
     }
   }while(0 == connectOK);
+}
+
+void setup() 
+{ 
+  for(int a = 0; a < arduinoAmount; a++){
+    for(int s = 0; s < sensorAmount; s++){
+      for(int v = 0; v < valuesPrSensor; v++){
+        arduino[a][s][v] = 0;
+      }
+    }
+  }
+  
+  Serial.begin(19200);
+  pinMode(RxD, INPUT);
+  pinMode(TxD, OUTPUT);
+  masterSetup();
+  //wait 1s and flush the serial buffer
+  delay(1000);
+  Serial.flush();
+  blueToothSerial.flush();
+} 
+ 
+void loop() 
+{
+  if(blueToothSerial.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
+    int bufVal = 0;
+    for(int s = 0; s < sensorAmount; s++){
+      for(int v = 0; v < valuesPrSensor; v++){
+        arduino[0][s][v] = buffer[bufVal];
+        bufVal++;
+      }
+    }
+  }
+  
+  time = millis();
+  
+  if(time > lastTime + 20){
+    lastTime = time;
+    unsigned char data[len]; //Putting the values into the data arrgyroY, expand or decrease as needed
+    int count = 0;
+    for(int a = 0; a < 1; a++){
+      for(int s = 0; s < sensorAmount; s++){
+        for(int v = 0; v < valuesPrSensor; v++){
+          Serial.print(int(arduino[a][s][v]));
+          Serial.print(' ');
+          count++;
+        }
+      }
+    }
+    Serial.println();
+  }
 }
