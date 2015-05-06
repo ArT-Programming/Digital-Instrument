@@ -1,5 +1,15 @@
 #include <Kalman.h>
 #include <MIDI.h>
+#include <SoftwareSerial.h>   //Software Serial Port
+
+#define RxD0 5 //Yellow
+#define TxD0 4 //White
+
+#define RxD1 7 //Yelllow
+#define TxD1 6 //White
+
+SoftwareSerial masterSerial0(RxD0,TxD0);
+SoftwareSerial masterSerial1(RxD1,TxD1);
 
 String slaveAdd0 = "\r\n+CONN=0,18,E4,C,67,FD\r\n"; //ART01158 paired with master ART01155; pin 0000 OK
 String slaveAdd1 = "\r\n+CONN=0,18,E4,C,68,1\r\n"; //ART01154 paired with master ART01151; pin 1111 OK
@@ -7,35 +17,35 @@ String slaveAdd1 = "\r\n+CONN=0,18,E4,C,68,1\r\n"; //ART01154 paired with master
 //String slaveAdd3 = "\r\n+CONN=0,18,E4,C,68,A\r\n"; //ART01135 paired with master ART01156; pin 3333 OK
 
 void masterSetup0(){
-  Serial2.begin(38400); //Set BluetoothBee BaudRate to default baud rate 38400
-  Serial2.print("\r\n+STWMOD=1\r\n");//set the bluetooth work in master mode
-  Serial2.print("\r\n+STBD=38400\r\n"); //tell the bluetooth to communicate at baudrate 38400
-  Serial2.print("\r\n+STNA=master0\r\n");//set the bluetooth name as "master"
-  Serial2.print("\r\n+STAUTO=1\r\n"); // Auto-connection should be forbidden here
-  Serial2.print("\r\n+STOAUT=1\r\n"); // Permit Paired device to connect me
-  Serial2.print("\r\n+STPIN=0000\r\n");//Set Master pincode"0000",it must be same as Slave pincode
+  masterSerial0.begin(38400); //Set BluetoothBee BaudRate to default baud rate 38400
+  masterSerial0.print("\r\n+STWMOD=1\r\n");//set the bluetooth work in master mode
+  masterSerial0.print("\r\n+STBD=38400\r\n"); //tell the bluetooth to communicate at baudrate 38400
+  masterSerial0.print("\r\n+STNA=master0\r\n");//set the bluetooth name as "master"
+  masterSerial0.print("\r\n+STAUTO=1\r\n"); // Auto-connection should be forbidden here
+  masterSerial0.print("\r\n+STOAUT=1\r\n"); // Permit Paired device to connect me
+  masterSerial0.print("\r\n+STPIN=0000\r\n");//Set Master pincode"0000",it must be same as Slave pincode
   delay(2000); // This delay is required.
-  Serial2.flush();
-  Serial2.print("\r\n+INQ=1\r\n");//make the master inquire
+  masterSerial0.flush();
+  masterSerial0.print("\r\n+INQ=1\r\n");//make the master inquire
   //Serial.println("Master is inquiring!");
   delay(2000); // This delay is required.
-  Serial2.print(slaveAdd0);
+  masterSerial0.print(slaveAdd0);
 }
 
 void masterSetup1(){
-  Serial3.begin(38400); //Set BluetoothBee BaudRate to default baud rate 38400
-  Serial3.print("\r\n+STWMOD=1\r\n");//set the bluetooth work in master mode
-  Serial3.print("\r\n+STBD=38400\r\n"); //tell the bluetooth to communicate at baudrate 38400
-  Serial3.print("\r\n+STNA=master1\r\n");//set the bluetooth name as "master"
-  Serial3.print("\r\n+STAUTO=1\r\n"); // Auto-connection should be forbidden here
-  Serial3.print("\r\n+STOAUT=1\r\n"); // Permit Paired device to connect me
-  Serial3.print("\r\n+STPIN=1111\r\n");//Set Master pincode"0000",it must be same as Slave pincode
+  masterSerial1.begin(38400); //Set BluetoothBee BaudRate to default baud rate 38400
+  masterSerial1.print("\r\n+STWMOD=1\r\n");//set the bluetooth work in master mode
+  masterSerial1.print("\r\n+STBD=38400\r\n"); //tell the bluetooth to communicate at baudrate 38400
+  masterSerial1.print("\r\n+STNA=master1\r\n");//set the bluetooth name as "master"
+  masterSerial1.print("\r\n+STAUTO=1\r\n"); // Auto-connection should be forbidden here
+  masterSerial1.print("\r\n+STOAUT=1\r\n"); // Permit Paired device to connect me
+  masterSerial1.print("\r\n+STPIN=1111\r\n");//Set Master pincode"0000",it must be same as Slave pincode
   delay(2000); // This delay is required.
-  Serial3.flush();
-  Serial3.print("\r\n+INQ=1\r\n");//make the master inquire
+  masterSerial1.flush();
+  masterSerial1.print("\r\n+INQ=1\r\n");//make the master inquire
   //Serial.println("Master is inquiring!");
   delay(2000); // This delay is required.
-  Serial3.print(slaveAdd1);
+  masterSerial1.print(slaveAdd1);
 }
 
 class Arduino{
@@ -45,12 +55,16 @@ public:
   Kalman kalmanX,kalmanY;
   float angleX,angleY,angleZ, oldAngleX, oldAngleY, oldAngleZ, veloX, veloY, veloZ;
 
+	
   Arduino(){
     for(int i = 0; i < 3; i++){
 	 gyro[i] = 0;
 	  acc[i] = 0;
 	 }
      angleX = angleY = angleZ = oldAngleX = oldAngleY = oldAngleZ = veloX = veloY = veloZ = 0;
+		//kalmanX.setQangle(0.01); //0.001 default
+		//kalmanX.setQbias(0.03); //0.003 default
+		//kalmanX.setRmeasure(0.3); //0.03 default
 	}
 	
      void getValues(int ID, unsigned char arduino[][2][3]){
@@ -147,22 +161,25 @@ void setup()
   }
   
   //Serial.begin(19200);
-  Serial2.begin(38400);
+  pinMode(RxD0, INPUT);
+  pinMode(TxD0, OUTPUT);
   masterSetup0();
   
-  Serial3.begin(38400);
+  pinMode(RxD1, INPUT);
+  pinMode(TxD1, OUTPUT);
   masterSetup1();
   
   //wait 1s and flush the serial buffer
   delay(1000);
-  Serial2.flush();
-  Serial3.flush();
+  masterSerial0.flush();
+  masterSerial1.flush();
 } 
  
 void loop() 
 {
- // Serial2.listen();
-  if(Serial2.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
+  
+  masterSerial0.listen();
+  if(masterSerial0.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
     int bufVal = 0;
     for(int s = 0; s < sensorAmount; s++){
       for(int v = 0; v < valuesPrSensor; v++){
@@ -171,8 +188,9 @@ void loop()
       }
     }
   }
-  //Serial3.listen();
-  if(Serial3.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
+  
+  masterSerial1.listen();
+  if(masterSerial1.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
     int bufVal = 0;
     for(int s = 0; s < sensorAmount; s++){
       for(int v = 0; v < valuesPrSensor; v++){
@@ -181,6 +199,7 @@ void loop()
       }
     }
   }
+  
   time = millis();
   float dt = calDT(time) / 1000.; //frame time in seconds
   
@@ -191,23 +210,39 @@ void loop()
        ard[a].setAngles(dt);
        ard[a].velocity(dt);
        
+       /*Serial.print(ard[a].angleX);
+       Serial.print(" ");
+       Serial.print(ard[a].angleY);
+       Serial.print(" ");
+       Serial.print(ard[a].angleZ);
+       Serial.print(" ");*/
        volume[a] = currentVolume(ard[0].veloX, ard[0].veloY, ard[0].veloZ);
        
        data[a][0] = ((ard[a].angleX + 90) / 180.) * 127;
        data[a][1] = ((ard[a].angleY + 90) / 180.) * 127;
        data[a][2] = volume[a];
      }
+     /*
+      for(int s = 0; s < sensorAmount; s++){
+        for(int v = 0; v < valuesPrSensor; v++){
+          Serial.print(arduino[0][s][v]);
+          Serial.print(" ");
+        }
+      }
+     lastTime = time;
+     Serial.println();*/
+  //}
+  // 0 is gyro and 1 is acc
   
     int MidiNo = 20;
     
-    for(int a = 0; a < 1; a++){
+    for(int a = 0; a < arduinoAmount; a++){
       for(int v = 0; v < 3; v++){
         MIDI.sendControlChange(MidiNo, data[a][v], 1);
         MidiNo++;
     }
-    //MidiNo += 27;
+    MidiNo += 7;
   }
-  delay(5);
 }
   
 
