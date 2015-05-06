@@ -9,7 +9,7 @@
 #define TxD1 6 //White
 
 SoftwareSerial masterSerial0(RxD0,TxD0);
-SoftwareSerial masterSerial1(RxD1,TxD1);
+//SoftwareSerial masterSerial1(RxD1,TxD1);
 
 String slaveAdd0 = "\r\n+CONN=0,18,E4,C,67,FD\r\n"; //ART01158 paired with master ART01155; pin 0000 OK
 String slaveAdd1 = "\r\n+CONN=0,18,E4,C,68,1\r\n"; //ART01154 paired with master ART01151; pin 1111 OK
@@ -31,7 +31,7 @@ void masterSetup0(){
   delay(2000); // This delay is required.
   masterSerial0.print(slaveAdd0);
 }
-
+/*
 void masterSetup1(){
   masterSerial1.begin(38400); //Set BluetoothBee BaudRate to default baud rate 38400
   masterSerial1.print("\r\n+STWMOD=1\r\n");//set the bluetooth work in master mode
@@ -47,7 +47,7 @@ void masterSetup1(){
   delay(2000); // This delay is required.
   masterSerial1.print(slaveAdd1);
 }
-
+*/
 class Arduino{
 public:
   float gyro[3];
@@ -55,6 +55,7 @@ public:
   Kalman kalmanX,kalmanY;
   float angleX,angleY,angleZ, oldAngleX, oldAngleY, oldAngleZ, veloX, veloY, veloZ;
 
+	
   Arduino(){
     for(int i = 0; i < 3; i++){
 	 gyro[i] = 0;
@@ -121,7 +122,7 @@ public:
 
 //------------
 
-const int arduinoAmount = 2;
+const int arduinoAmount = 1;
 const int sensorAmount = 2;
 const int valuesPrSensor = 3;
 
@@ -164,19 +165,19 @@ void setup()
   pinMode(TxD0, OUTPUT);
   masterSetup0();
   
-  pinMode(RxD1, INPUT);
-  pinMode(TxD1, OUTPUT);
-  masterSetup1();
+  //pinMode(RxD1, INPUT);
+  //pinMode(TxD1, OUTPUT);
+  //masterSetup1();
   
   //wait 1s and flush the serial buffer
   delay(1000);
-  masterSerial0.flush();
-  masterSerial1.flush();
+  //masterSerial0.flush();
+  //masterSerial1.flush();
 } 
  
 void loop() 
 {
-  masterSerial0.listen();
+  //masterSerial0.listen();
   if(masterSerial0.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
     int bufVal = 0;
     for(int s = 0; s < sensorAmount; s++){
@@ -186,8 +187,8 @@ void loop()
       }
     }
   }
-  masterSerial1.listen();
-  if(masterSerial1.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
+  
+  /*if(masterSerial1.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
     int bufVal = 0;
     for(int s = 0; s < sensorAmount; s++){
       for(int v = 0; v < valuesPrSensor; v++){
@@ -195,7 +196,8 @@ void loop()
         bufVal++;
       }
     }
-  }
+  }*/
+  
   time = millis();
   float dt = calDT(time) / 1000.; //frame time in seconds
   

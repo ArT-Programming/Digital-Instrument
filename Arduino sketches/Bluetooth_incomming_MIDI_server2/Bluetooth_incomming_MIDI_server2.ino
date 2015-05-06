@@ -61,9 +61,6 @@ public:
 	  acc[i] = 0;
 	 }
      angleX = angleY = angleZ = oldAngleX = oldAngleY = oldAngleZ = veloX = veloY = veloZ = 0;
-		//kalmanX.setQangle(0.01); //0.001 default
-		//kalmanX.setQbias(0.03); //0.003 default
-		//kalmanX.setRmeasure(0.3); //0.03 default
 	}
 	
      void getValues(int ID, unsigned char arduino[][2][3]){
@@ -176,7 +173,7 @@ void setup()
  
 void loop() 
 {
-  masterSerial0.listen();
+ // masterSerial0.listen();
   if(masterSerial0.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
     int bufVal = 0;
     for(int s = 0; s < sensorAmount; s++){
@@ -186,7 +183,7 @@ void loop()
       }
     }
   }
-  masterSerial1.listen();
+  //masterSerial1.listen();
   if(masterSerial1.readBytes((char *)buffer, packetSize) == packetSize){ //Reads from the serial line until the buffer is equal to the size of the packet (one complete packet in the buffer)
     int bufVal = 0;
     for(int s = 0; s < sensorAmount; s++){
@@ -206,29 +203,12 @@ void loop()
        ard[a].setAngles(dt);
        ard[a].velocity(dt);
        
-       /*Serial.print(ard[a].angleX);
-       Serial.print(" ");
-       Serial.print(ard[a].angleY);
-       Serial.print(" ");
-       Serial.print(ard[a].angleZ);
-       Serial.print(" ");*/
        volume[a] = currentVolume(ard[0].veloX, ard[0].veloY, ard[0].veloZ);
        
        data[a][0] = ((ard[a].angleX + 90) / 180.) * 127;
        data[a][1] = ((ard[a].angleY + 90) / 180.) * 127;
        data[a][2] = volume[a];
      }
-     /*
-      for(int s = 0; s < sensorAmount; s++){
-        for(int v = 0; v < valuesPrSensor; v++){
-          Serial.print(arduino[0][s][v]);
-          Serial.print(" ");
-        }
-      }
-     lastTime = time;
-     Serial.println();*/
-  //}
-  // 0 is gyro and 1 is acc
   
     int MidiNo = 20;
     
@@ -237,8 +217,9 @@ void loop()
         MIDI.sendControlChange(MidiNo, data[a][v], 1);
         MidiNo++;
     }
-    MidiNo += 7;
+    MidiNo += 17;
   }
+  delay(5);
 }
   
 
