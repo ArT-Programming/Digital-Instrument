@@ -29,21 +29,27 @@ void slaveSetup(){
   delay(2000); // This delay is required.
   blueToothSerial.flush();
 }
-
 //------------- 
+
+float gyroX,gyroY,gyroZ, accX, accY, accZ;
+unsigned char GX, GY, GZ, AX, AY, AZ, SOP, ID, CHK;
+
 void setup(){ 
-  Serial.begin(9600);
+  //Serial.begin(9600);
   pinMode(RxD, INPUT);
   pinMode(TxD, OUTPUT);
   slaveSetup(); 
   gyro.init();
   gyro.zeroCalibrate(200,10);
   accelemeter.init();
+  gyroX = gyroY = gyroZ = accX = accY = accZ = 0;
+  GX = GY = GZ = AX = AY = AZ = CHK = 0;
+  SOP = 0xFF; // Start of packet
+  ID = 1; // Arduino ID NR 
 }
  
 void loop() { 
-  float gyroX,gyroY,gyroZ;
-  unsigned char GX, GY, GZ, AX, AY, AZ;
+  
   gyro.getAngularVelocity(&gyroX,&gyroY,&gyroZ);
   
   gyroX = int(gyroX) / 20 + 127;
@@ -61,7 +67,6 @@ void loop() {
       else if(gyroZ > 255){ gyroZ = 255; }
   GZ = char(gyroZ);
   
-  float accX,accY,accZ;
   accelemeter.getAcceleration(&accX,&accY,&accZ);
  
   accX = int((accX / 1.52 + 1) * 127);
@@ -70,13 +75,15 @@ void loop() {
     AY = char(accY);
   accZ = int((accZ / 1.52 + 1) * 127);
     AZ = char(accZ);
-     
-   unsigned char s[6] = {GX, GY, GZ, AX, AY, AZ};
-  /*for(int i = 0; i < 6; i++){
-    Serial.print(s[i]);  
-    Serial.print(" "); 
-  }Serial.println("");*/
-   blueToothSerial.write(s, 6);
+     // SOP, ID, VALUEx6, CHK  
+   unsigned char s[9] = {SOP, ID, GX, GY, GZ, AX, AY, AZ, CHK};
+   CHK = 0;
+   for(int i = 0; i < 6; i++){
+      CHK += s[i+2];
+     }
+   s[8] = CHK; 
+
+   blueToothSerial.write(s, 9);
    delay(10);
 } 
  
