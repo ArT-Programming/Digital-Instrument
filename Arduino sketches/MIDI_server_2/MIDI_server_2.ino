@@ -292,7 +292,13 @@ void loop()
       Serial.print(" ");
       Serial.print(ard[a].angleZ);
       Serial.print(" ");*/
-      volume[a] = currentVolume(ard[a].veloX, ard[a].veloY, ard[a].veloZ);
+      int current = currentVolume(ard[a].veloX, ard[a].veloY, ard[a].veloZ);
+      
+      if(current > volume[a]){
+        volume[a] = current;
+      }else{
+        volume[a] = volume[a] * (0.99);
+      }
       
       data[a][0] = ((ard[a].angleX + 90) / 180.) * 127;
       data[a][1] = ((ard[a].angleY + 90) / 180.) * 127;
