@@ -53,7 +53,7 @@ void masterSetup3(){
 class Arduino{
 public:
   float gyro[3];
-  float acc[3];
+  float acc[3], oldAcc[3], veloAcc[3];
   Kalman kalmanX,kalmanY;
   float angleX,angleY,angleZ, oldAngleX, oldAngleY, oldAngleZ, veloX, veloY, veloZ;
 
@@ -61,13 +61,15 @@ public:
   Arduino(){
     for(int i = 0; i < 3; i++){
 	 gyro[i] = 0;
-	  acc[i] = 0;
-	 }
-     angleX = angleY = angleZ = oldAngleX = oldAngleY = oldAngleZ = veloX = veloY = veloZ = 0;
+	 acc[i] = 0;
+         oldAcc[i] = 0;
+         veloAcc[i] = 0;
+    }
+    angleX = angleY = angleZ = oldAngleX = oldAngleY = oldAngleZ = veloX = veloY = veloZ = 0;
 		//kalmanX.setQangle(0.01); //0.001 default
 		//kalmanX.setQbias(0.03); //0.003 default
 		//kalmanX.setRmeasure(0.3); //0.03 default
-	}
+  }
 	
      void getValues(int ID, unsigned char arduino[][2][3]){
        for(int s = 0; s < 2; s++){ 
@@ -119,6 +121,19 @@ public:
     oldAngleX = angleX;
     oldAngleY = angleY;
     oldAngleZ = angleZ;
+    
+    for(int i = 0; i < 3; i++){
+      veloAcc[i] = 127 * ((fabs(acc[i] - oldAcc[i])) / 1.52);
+      /*Serial.print(i);
+      Serial.print(" = ");
+      Serial.print(acc[i]);
+      Serial.print(" - ");
+      Serial.print(oldAcc[i]);
+      Serial.print(" = ");
+      Serial.println(veloAcc[i]);*/
+      oldAcc[i] = acc[i];
+    }
+    //Serial.println();
   }
 };
 
@@ -144,11 +159,24 @@ unsigned char ID[4] = {0,1,2,3};
 
 //---------------
 
-int currentVolume(float x = 0, float y = 0, float z = 0){
-  int mean = (x + y + z) / 3.;
-  mean = (mean / 360.) * 127;
+int currentVolume(float x = 0, float y = 0, float z = 0, float veloAcc[] = 0){
+  int meanAngle = (x + y + z) / 3.;
+  meanAngle = (meanAngle / 360.) * 127;
+  if(meanAngle > 127) meanAngle = 127;
+  if(meanAngle < 2) meanAngle = 0;
+  
+  int meanAcc = 0;
+  for(int i = 0; i < 3; i++){
+    meanAcc += veloAcc[i];
+  }
+  meanAcc /= 3.;
+  if(meanAcc > 127) meanAcc = 127;
+  if(meanAcc < 5) meanAcc = 0;
+  
+  int mean = meanAcc + meanAngle;
   if(mean > 127) mean = 127;
   if(mean < 2) mean = 0;
+  
   return mean;
 }
 
@@ -292,6 +320,9 @@ void loop()
       Serial.print(" ");
       Serial.print(ard[a].angleZ);
       Serial.print(" ");*/
+      
+      volume[a] = currentVolume(ard[a].veloX, ard[a].veloY, ard[a].veloZ, ard[a].veloAcc);
+      /*
       int current = currentVolume(ard[a].veloX, ard[a].veloY, ard[a].veloZ);
       
       if(current > volume[a]){
@@ -299,7 +330,7 @@ void loop()
       }else{
         volume[a] = volume[a] * (0.99);
       }
-      
+      */
       data[a][0] = ((ard[a].angleX + 90) / 180.) * 127;
       data[a][1] = ((ard[a].angleY + 90) / 180.) * 127;
       data[a][2] = volume[a];
